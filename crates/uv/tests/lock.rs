@@ -4053,6 +4053,9 @@ fn lock_same_version_multiple_urls() -> Result<()> {
         name = "anyio"
         version = "3.0.0"
         source = { registry = "https://pypi.org/simple" }
+        environment-markers = [
+            "sys_platform != 'darwin'",
+        ]
         dependencies = [
             { name = "idna" },
             { name = "sniffio" },
@@ -4066,6 +4069,9 @@ fn lock_same_version_multiple_urls() -> Result<()> {
         name = "anyio"
         version = "3.7.0"
         source = { registry = "https://pypi.org/simple" }
+        environment-markers = [
+            "sys_platform == 'darwin'",
+        ]
         dependencies = [
             { name = "idna" },
             { name = "sniffio" },
@@ -4079,6 +4085,9 @@ fn lock_same_version_multiple_urls() -> Result<()> {
         name = "dependency"
         version = "0.0.1"
         source = { directory = "[TEMP_DIR]/v1" }
+        environment-markers = [
+            "sys_platform == 'darwin'",
+        ]
         dependencies = [
             { name = "anyio", version = "3.7.0", source = { registry = "https://pypi.org/simple" } },
         ]
@@ -4087,6 +4096,9 @@ fn lock_same_version_multiple_urls() -> Result<()> {
         name = "dependency"
         version = "0.0.1"
         source = { directory = "[TEMP_DIR]/v2" }
+        environment-markers = [
+            "sys_platform != 'darwin'",
+        ]
         dependencies = [
             { name = "anyio", version = "3.0.0", source = { registry = "https://pypi.org/simple" } },
         ]
