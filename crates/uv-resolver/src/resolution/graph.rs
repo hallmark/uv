@@ -280,12 +280,12 @@ impl ResolutionGraph {
                 // If either the existing marker or new marker is `None`, then the dependency is
                 // included unconditionally, and so the combined marker should be `None`.
                 if let (Some(marker), Some(ref version_marker)) = (marker.as_mut(), edge.marker) {
-                    marker.or(version_marker.clone());
+                    *marker = marker.or(*version_marker);
                 } else {
                     *marker = None;
                 }
             } else {
-                petgraph.update_edge(from_index, to_index, edge.marker.clone());
+                petgraph.update_edge(from_index, to_index, edge.marker);
             }
         }
 
@@ -374,7 +374,7 @@ impl ResolutionGraph {
         marker_env: &MarkerEnvironment,
     ) -> Result<MarkerTree, Box<ParsedUrlError>> {
         use pep508_rs::{
-            MarkerExpression, MarkerOperator, MarkerTree, MarkerValueString, MarkerValueVersion,
+            MarkerExpressionKind, MarkerOperator, MarkerTree, MarkerValueString, MarkerValueVersion,
         };
 
         /// A subset of the possible marker values.
@@ -390,27 +390,23 @@ impl ResolutionGraph {
 
         /// Add all marker parameters from the given tree to the given set.
         fn add_marker_params_from_tree(marker_tree: &MarkerTree, set: &mut IndexSet<MarkerParam>) {
-            match marker_tree {
-                MarkerTree::Expression(MarkerExpression::Version { key, .. }) => {
-                    set.insert(MarkerParam::Version(key.clone()));
-                }
-                MarkerTree::Expression(MarkerExpression::String { key, .. }) => {
-                    set.insert(MarkerParam::String(key.clone()));
-                }
-                MarkerTree::And(ref exprs) | MarkerTree::Or(ref exprs) => {
-                    for expr in exprs {
-                        add_marker_params_from_tree(expr, set);
+            marker_tree.traverse(|expression| {
+                match expression {
+                    MarkerExpressionKind::Version { key, .. } => {
+                        set.insert(MarkerParam::Version(key.clone()));
+                    }
+                    MarkerExpressionKind::String { key, .. } => {
+                        set.insert(MarkerParam::String(key.clone()));
+                    }
+                    // We specifically don't care about these for the
+                    // purposes of generating a marker string for a lock
+                    // file. Quoted strings are marker values given by the
+                    // user. We don't track those here, since we're only
+                    // interested in which markers are used.
+                    MarkerExpressionKind::Extra { .. } | MarkerExpressionKind::Arbitrary { .. } => {
                     }
                 }
-                // We specifically don't care about these for the
-                // purposes of generating a marker string for a lock
-                // file. Quoted strings are marker values given by the
-                // user. We don't track those here, since we're only
-                // interested in which markers are used.
-                MarkerTree::Expression(
-                    MarkerExpression::Extra { .. } | MarkerExpression::Arbitrary { .. },
-                ) => {}
-            }
+            })
         }
 
         let mut seen_marker_values = IndexSet::default();
@@ -458,28 +454,29 @@ impl ResolutionGraph {
 
         // Generate the final marker expression as a conjunction of
         // strict equality terms.
-        let mut conjuncts = vec![];
+        let mut conjunction = MarkerTree::new_true();
         for marker_param in seen_marker_values {
             let expr = match marker_param {
                 MarkerParam::Version(value_version) => {
                     let from_env = marker_env.get_version(&value_version);
-                    MarkerExpression::Version {
+                    MarkerExpressionKind::Version {
                         key: value_version,
                         specifier: VersionSpecifier::equals_version(from_env.clone()),
                     }
                 }
                 MarkerParam::String(value_string) => {
                     let from_env = marker_env.get_string(&value_string);
-                    MarkerExpression::String {
+                    MarkerExpressionKind::String {
                         key: value_string,
                         operator: MarkerOperator::Equal,
                         value: from_env.to_string(),
                     }
                 }
             };
-            conjuncts.push(MarkerTree::Expression(expr));
+            conjunction = conjunction.and(MarkerTree::expression(expr));
         }
-        Ok(MarkerTree::And(conjuncts))
+
+        Ok(conjunction)
     }
 }
 

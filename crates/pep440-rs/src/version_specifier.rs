@@ -387,6 +387,11 @@ impl VersionSpecifier {
         Ok(Self { operator, version })
     }
 
+    /// Converts the version specifier into an operator and a version.
+    pub fn into_parts(self) -> (Operator, Version) {
+        (self.operator, self.version)
+    }
+
     /// `==<version>`
     pub fn equals_version(version: Version) -> Self {
         Self {
@@ -399,6 +404,14 @@ impl VersionSpecifier {
     pub fn greater_than_equal_version(version: Version) -> Self {
         Self {
             operator: Operator::GreaterThanEqual,
+            version,
+        }
+    }
+
+    /// `><version>`
+    pub fn greater_than_version(version: Version) -> Self {
+        Self {
+            operator: Operator::GreaterThan,
             version,
         }
     }

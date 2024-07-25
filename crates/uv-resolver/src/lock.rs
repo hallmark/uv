@@ -27,7 +27,8 @@ use distribution_types::{
 };
 use pep440_rs::{Version, VersionSpecifier};
 use pep508_rs::{
-    ExtraOperator, MarkerEnvironment, MarkerExpression, MarkerTree, VerbatimUrl, VerbatimUrlError,
+    ExtraOperator, MarkerEnvironment, MarkerExpressionKind, MarkerTree, VerbatimUrl,
+    VerbatimUrlError,
 };
 use platform_tags::{TagCompatibility, TagPriority, Tags};
 use pypi_types::{
@@ -944,12 +945,13 @@ impl Distribution {
             for dep in deps {
                 if let Some(mut dep) = dep.to_requirement(workspace_root, &mut dependency_extras)? {
                     // Add back the extra marker expression.
-                    let marker = MarkerTree::Expression(MarkerExpression::Extra {
+                    let marker = MarkerTree::expression(MarkerExpressionKind::Extra {
                         operator: ExtraOperator::Equal,
                         name: extra.clone(),
                     });
+
                     match dep.marker {
-                        Some(ref mut tree) => tree.and(marker),
+                        Some(ref mut tree) => *tree = tree.and(marker),
                         None => dep.marker = Some(marker),
                     }
 
@@ -2107,7 +2109,7 @@ impl Dependency {
     ) -> Dependency {
         let distribution_id = DistributionId::from_annotated_dist(annotated_dist);
         let extra = annotated_dist.extra.iter().cloned().collect();
-        let marker = marker.cloned();
+        let marker = marker.copied();
         Dependency {
             distribution_id,
             extra,
@@ -2179,7 +2181,7 @@ impl Dependency {
 
         let requirement = Requirement {
             name: self.distribution_id.name.clone(),
-            marker: self.marker.clone(),
+            marker: self.marker,
             origin: None,
             extras: Vec::new(),
             source,

@@ -9,12 +9,13 @@
 //! outcomes. This implementation tries to carefully validate everything and emit warnings whenever
 //! bogus comparisons with unintended semantics are made.
 
+mod bdd;
 mod environment;
 pub(crate) mod parse;
 mod tree;
 
 pub use environment::{MarkerEnvironment, MarkerEnvironmentBuilder};
 pub use tree::{
-    ExtraOperator, MarkerExpression, MarkerOperator, MarkerTree, MarkerValue, MarkerValueString,
-    MarkerValueVersion, MarkerWarningKind, StringVersion,
+    ExtraOperator, MarkerExpressionKind, MarkerOperator, MarkerTree, MarkerValue,
+    MarkerValueString, MarkerValueVersion, MarkerWarningKind, StringVersion,
 };

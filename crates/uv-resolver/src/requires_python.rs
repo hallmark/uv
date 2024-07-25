@@ -7,7 +7,7 @@ use pubgrub::range::Range;
 
 use distribution_filename::WheelFilename;
 use pep440_rs::{Operator, Version, VersionSpecifier, VersionSpecifiers};
-use pep508_rs::{MarkerExpression, MarkerTree, MarkerValueVersion};
+use pep508_rs::{MarkerExpressionKind, MarkerTree, MarkerValueVersion};
 
 #[derive(thiserror::Error, Debug)]
 pub enum RequiresPythonError {
@@ -211,7 +211,7 @@ impl RequiresPython {
             // tree we would generate would always evaluate to
             // `true` because every possible Python version would
             // satisfy it.
-            Bound::Unbounded => return MarkerTree::And(vec![]),
+            Bound::Unbounded => return MarkerTree::new_true(),
             Bound::Excluded(version) => (Operator::GreaterThan, version.clone().without_local()),
             Bound::Included(version) => {
                 (Operator::GreaterThanEqual, version.clone().without_local())
@@ -226,7 +226,7 @@ impl RequiresPython {
         // this part of our marker limited to the major and minor version
         // components only.
         let version_major_minor_only = Version::new(version.release().iter().take(2));
-        let expr_python_version = MarkerExpression::Version {
+        let expr_python_version = MarkerExpressionKind::Version {
             key: MarkerValueVersion::PythonVersion,
             // OK because a version specifier is only invalid when the
             // version is local (which is impossible here because we
@@ -234,7 +234,7 @@ impl RequiresPython {
             // impossible here).
             specifier: VersionSpecifier::from_version(op, version_major_minor_only).unwrap(),
         };
-        let expr_python_full_version = MarkerExpression::Version {
+        let expr_python_full_version = MarkerExpressionKind::Version {
             key: MarkerValueVersion::PythonFullVersion,
             // For `python_full_version`, we can use the entire
             // version as-is.
@@ -245,10 +245,9 @@ impl RequiresPython {
             // impossible here).
             specifier: VersionSpecifier::from_version(op, version).unwrap(),
         };
-        MarkerTree::And(vec![
-            MarkerTree::Expression(expr_python_version),
-            MarkerTree::Expression(expr_python_full_version),
-        ])
+
+        MarkerTree::expression(expr_python_version)
+            .and(MarkerTree::expression(expr_python_full_version))
     }
 
     /// Returns `false` if the wheel's tags state it can't be used in the given Python version

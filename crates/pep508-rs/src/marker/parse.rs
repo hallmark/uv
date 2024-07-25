@@ -5,8 +5,8 @@ use uv_normalize::ExtraName;
 
 use crate::cursor::Cursor;
 use crate::{
-    ExtraOperator, MarkerExpression, MarkerOperator, MarkerTree, MarkerValue, MarkerValueVersion,
-    MarkerWarningKind, Pep508Error, Pep508ErrorSource, Pep508Url, Reporter,
+    ExtraOperator, MarkerExpressionKind, MarkerOperator, MarkerTree, MarkerValue,
+    MarkerValueVersion, MarkerWarningKind, Pep508Error, Pep508ErrorSource, Pep508Url, Reporter,
 };
 
 /// ```text
@@ -118,7 +118,7 @@ pub(crate) fn parse_marker_value<T: Pep508Url>(
 pub(crate) fn parse_marker_key_op_value<T: Pep508Url>(
     cursor: &mut Cursor,
     reporter: &mut impl Reporter,
-) -> Result<MarkerExpression, Pep508Error<T>> {
+) -> Result<MarkerExpressionKind, Pep508Error<T>> {
     cursor.eat_whitespace();
     let l_value = parse_marker_value(cursor)?;
     cursor.eat_whitespace();
@@ -143,7 +143,7 @@ pub(crate) fn parse_marker_key_op_value<T: Pep508Url>(
                     ),
                 );
 
-                return Ok(MarkerExpression::arbitrary(
+                return Ok(MarkerExpressionKind::arbitrary(
                     MarkerValue::MarkerEnvVersion(key),
                     operator,
                     r_value,
@@ -152,7 +152,7 @@ pub(crate) fn parse_marker_key_op_value<T: Pep508Url>(
 
             match parse_version_expr(key.clone(), operator, &value, reporter) {
                 Some(expr) => expr,
-                None => MarkerExpression::arbitrary(
+                None => MarkerExpressionKind::arbitrary(
                     MarkerValue::MarkerEnvVersion(key),
                     operator,
                     MarkerValue::QuotedString(value),
@@ -172,7 +172,7 @@ pub(crate) fn parse_marker_key_op_value<T: Pep508Url>(
                             .to_string(),
                     );
 
-                    return Ok(MarkerExpression::arbitrary(
+                    return Ok(MarkerExpressionKind::arbitrary(
                         MarkerValue::MarkerEnvString(key),
                         operator,
                         r_value,
@@ -181,7 +181,7 @@ pub(crate) fn parse_marker_key_op_value<T: Pep508Url>(
                 MarkerValue::QuotedString(r_string) => r_string,
             };
 
-            MarkerExpression::String {
+            MarkerExpressionKind::String {
                 key,
                 operator,
                 value,
@@ -200,14 +200,14 @@ pub(crate) fn parse_marker_key_op_value<T: Pep508Url>(
                             .to_string(),
                     );
 
-                    return Ok(MarkerExpression::arbitrary(l_value, operator, r_value));
+                    return Ok(MarkerExpressionKind::arbitrary(l_value, operator, r_value));
                 }
                 MarkerValue::QuotedString(value) => value,
             };
 
             match parse_extra_expr(operator, &value, reporter) {
                 Some(expr) => expr,
-                None => MarkerExpression::arbitrary(
+                None => MarkerExpressionKind::arbitrary(
                     MarkerValue::Extra,
                     operator,
                     MarkerValue::QuotedString(value),
@@ -221,7 +221,7 @@ pub(crate) fn parse_marker_key_op_value<T: Pep508Url>(
                 MarkerValue::MarkerEnvVersion(key) => {
                     match parse_inverted_version_expr(&l_string, operator, key.clone(), reporter) {
                         Some(expr) => expr,
-                        None => MarkerExpression::arbitrary(
+                        None => MarkerExpressionKind::arbitrary(
                             MarkerValue::QuotedString(l_string),
                             operator,
                             MarkerValue::MarkerEnvVersion(key),
@@ -229,7 +229,7 @@ pub(crate) fn parse_marker_key_op_value<T: Pep508Url>(
                     }
                 }
                 // '...' == <env key>
-                MarkerValue::MarkerEnvString(key) => MarkerExpression::String {
+                MarkerValue::MarkerEnvString(key) => MarkerExpressionKind::String {
                     key,
                     // Invert the operator to normalize the expression order.
                     operator: operator.invert(),
@@ -238,7 +238,7 @@ pub(crate) fn parse_marker_key_op_value<T: Pep508Url>(
                 // `'...' == extra`
                 MarkerValue::Extra => match parse_extra_expr(operator, &l_string, reporter) {
                     Some(expr) => expr,
-                    None => MarkerExpression::arbitrary(
+                    None => MarkerExpressionKind::arbitrary(
                         MarkerValue::QuotedString(l_string),
                         operator,
                         MarkerValue::Extra,
@@ -248,7 +248,7 @@ pub(crate) fn parse_marker_key_op_value<T: Pep508Url>(
                 MarkerValue::QuotedString(_) => {
                     // Not even pypa/packaging 22.0 supports this
                     // https://github.com/pypa/packaging/issues/632
-                    let expr = MarkerExpression::arbitrary(
+                    let expr = MarkerExpressionKind::arbitrary(
                         MarkerValue::QuotedString(l_string),
                         operator,
                         r_value,
@@ -279,7 +279,7 @@ fn parse_version_expr(
     marker_operator: MarkerOperator,
     value: &str,
     reporter: &mut impl Reporter,
-) -> Option<MarkerExpression> {
+) -> Option<MarkerExpressionKind> {
     let pattern = match value.parse::<VersionPattern>() {
         Ok(pattern) => pattern,
         Err(err) => {
@@ -319,7 +319,7 @@ fn parse_version_expr(
         }
     };
 
-    Some(MarkerExpression::Version { key, specifier })
+    Some(MarkerExpressionKind::Version { key, specifier })
 }
 
 /// Creates an instance of [`MarkerExpression::Version`] from an inverted expression.
@@ -330,7 +330,7 @@ fn parse_inverted_version_expr(
     marker_operator: MarkerOperator,
     key: MarkerValueVersion,
     reporter: &mut impl Reporter,
-) -> Option<MarkerExpression> {
+) -> Option<MarkerExpressionKind> {
     // Invert the operator to normalize the expression order.
     let marker_operator = marker_operator.invert();
 
@@ -373,7 +373,7 @@ fn parse_inverted_version_expr(
         }
     };
 
-    Some(MarkerExpression::Version { key, specifier })
+    Some(MarkerExpressionKind::Version { key, specifier })
 }
 
 /// Creates an instance of [`MarkerExpression::Extra`] with the given values, falling back to
@@ -382,7 +382,7 @@ fn parse_extra_expr(
     operator: MarkerOperator,
     value: &str,
     reporter: &mut impl Reporter,
-) -> Option<MarkerExpression> {
+) -> Option<MarkerExpressionKind> {
     let name = match ExtraName::from_str(value) {
         Ok(name) => name,
         Err(err) => {
@@ -396,7 +396,7 @@ fn parse_extra_expr(
     };
 
     if let Some(operator) = ExtraOperator::from_marker_operator(operator) {
-        return Some(MarkerExpression::Extra { operator, name });
+        return Some(MarkerExpressionKind::Extra { operator, name });
     }
 
     reporter.report(
@@ -422,7 +422,7 @@ fn parse_marker_expr<T: Pep508Url>(
         cursor.next_expect_char(')', start_pos)?;
         Ok(marker)
     } else {
-        Ok(MarkerTree::Expression(parse_marker_key_op_value(
+        Ok(MarkerTree::expression(parse_marker_key_op_value(
             cursor, reporter,
         )?))
     }
@@ -436,7 +436,14 @@ fn parse_marker_and<T: Pep508Url>(
     cursor: &mut Cursor,
     reporter: &mut impl Reporter,
 ) -> Result<MarkerTree, Pep508Error<T>> {
-    parse_marker_op(cursor, "and", MarkerTree::And, parse_marker_expr, reporter)
+    parse_marker_op(
+        cursor,
+        "and",
+        MarkerTree::new_true(),
+        MarkerTree::and,
+        parse_marker_expr,
+        reporter,
+    )
 }
 
 /// ```text
@@ -447,14 +454,22 @@ fn parse_marker_or<T: Pep508Url>(
     cursor: &mut Cursor,
     reporter: &mut impl Reporter,
 ) -> Result<MarkerTree, Pep508Error<T>> {
-    parse_marker_op(cursor, "or", MarkerTree::Or, parse_marker_and, reporter)
+    parse_marker_op(
+        cursor,
+        "or",
+        MarkerTree::new_false(),
+        MarkerTree::or,
+        parse_marker_and,
+        reporter,
+    )
 }
 
 /// Parses both `marker_and` and `marker_or`
 fn parse_marker_op<T: Pep508Url, R: Reporter>(
     cursor: &mut Cursor,
     op: &str,
-    op_constructor: fn(Vec<MarkerTree>) -> MarkerTree,
+    mut tree: MarkerTree,
+    apply: fn(MarkerTree, MarkerTree) -> MarkerTree,
     parse_inner: fn(&mut Cursor, &mut R) -> Result<MarkerTree, Pep508Error<T>>,
     reporter: &mut R,
 ) -> Result<MarkerTree, Pep508Error<T>> {
@@ -467,8 +482,8 @@ fn parse_marker_op<T: Pep508Url, R: Reporter>(
         return Ok(first_element);
     }
 
-    let mut expressions = Vec::with_capacity(1);
-    expressions.push(first_element);
+    tree = apply(tree, first_element);
+
     loop {
         // wsp*
         cursor.eat_whitespace();
@@ -478,16 +493,9 @@ fn parse_marker_op<T: Pep508Url, R: Reporter>(
             value if value == op => {
                 cursor.take_while(|c| !c.is_whitespace());
                 let expression = parse_inner(cursor, reporter)?;
-                expressions.push(expression);
+                tree = apply(tree, expression);
             }
-            _ => {
-                // Build minimal trees
-                return if expressions.len() == 1 {
-                    Ok(expressions.remove(0))
-                } else {
-                    Ok(op_constructor(expressions))
-                };
-            }
+            _ => return Ok(tree),
         }
     }
 }
