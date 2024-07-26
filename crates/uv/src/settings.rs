@@ -194,6 +194,7 @@ pub(crate) struct RunSettings {
     pub(crate) command: ExternalCommand,
     pub(crate) with: Vec<String>,
     pub(crate) with_requirements: Vec<PathBuf>,
+    pub(crate) isolate: bool,
     pub(crate) package: Option<PackageName>,
     pub(crate) no_workspace: bool,
     pub(crate) python: Option<String>,
@@ -206,6 +207,7 @@ impl RunSettings {
     #[allow(clippy::needless_pass_by_value)]
     pub(crate) fn resolve(args: RunArgs, filesystem: Option<FilesystemOptions>) -> Self {
         let RunArgs {
+            isolate,
             locked,
             frozen,
             extra,
@@ -238,6 +240,7 @@ impl RunSettings {
                 .into_iter()
                 .filter_map(Maybe::into_option)
                 .collect(),
+            isolate,
             package,
             no_workspace,
             python,
