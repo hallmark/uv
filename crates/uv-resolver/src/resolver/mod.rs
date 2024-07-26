@@ -2217,7 +2217,7 @@ impl ForkState {
     fn with_markers(mut self, markers: MarkerTree) -> Self {
         let combined_markers = self.markers.and(markers);
         let combined_markers =
-            normalize(combined_markers, None).expect("Fork markers are universal");
+            normalize(combined_markers, None).unwrap_or_else(|| MarkerTree::And(vec![]));
 
         // If the fork contains a narrowed Python requirement, apply it.
         let python_requirement = requires_python_marker(&combined_markers)
@@ -2831,8 +2831,9 @@ impl Fork {
         // one other marker expression in this fork.
         // However, the symmetric differences may be
         // non-empty. Therefore, the markers need to be
-        // combined on the corresponding fork.
-        self.markers.and(marker);
+        // unioned on the corresponding fork to include
+        // everything.
+        self.markers.or(marker);
     }
 
     /// Add the given dependency to this fork.

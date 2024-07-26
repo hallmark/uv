@@ -47,11 +47,18 @@ impl ForkUrls {
                             ))
                         }
                         ResolverMarkers::Fork(fork_markers) => {
-                            Err(ResolveError::ConflictingUrlsFork {
-                                package_name: package_name.clone(),
-                                urls: conflicting_url,
-                                fork_markers: fork_markers.clone(),
-                            })
+                            if fork_markers.is_universal() {
+                                Err(ResolveError::ConflictingUrlsUniversal(
+                                    package_name.clone(),
+                                    conflicting_url,
+                                ))
+                            } else {
+                                Err(ResolveError::ConflictingUrlsFork {
+                                    package_name: package_name.clone(),
+                                    urls: conflicting_url,
+                                    fork_markers: fork_markers.clone(),
+                                })
+                            }
                         }
                     };
                 }
