@@ -45,7 +45,7 @@ pub(crate) async fn run(
     dev: bool,
     python: Option<String>,
     settings: ResolverInstallerSettings,
-    isolated: bool,
+    no_workspace: bool,
     preview: PreviewMode,
     python_preference: PythonPreference,
     python_fetch: PythonFetch,
@@ -159,8 +159,8 @@ pub(crate) async fn run(
     // Discover and sync the base environment.
     let base_interpreter = if let Some(script_interpreter) = script_interpreter {
         Some(script_interpreter)
-    } else if isolated {
-        // package is `None`, isolated and package are marked as conflicting in clap.
+    } else if no_workspace {
+        // package is `None` (`no_workspace` and `package` are marked as conflicting in Clap).
         None
     } else {
         let project = if let Some(package) = package {
