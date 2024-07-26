@@ -16,12 +16,16 @@ use crate::{
 ///
 /// The main change is using [`RequirementSource`] to represent all supported package sources over
 /// [`VersionOrUrl`], which collapses all URL sources into a single stringly type.
-#[derive(Hash, Debug, Clone, Eq, PartialEq)]
+#[derive(Hash, Debug, Clone, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct Requirement {
     pub name: PackageName,
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub extras: Vec<ExtraName>,
     pub marker: Option<MarkerTree>,
+    #[serde(flatten)]
     pub source: RequirementSource,
+    #[serde(skip)]
     pub origin: Option<RequirementOrigin>,
 }
 
@@ -228,10 +232,12 @@ impl Display for Requirement {
 /// We store both the parsed fields (such as the plain url and the subdirectory) and the joined
 /// PEP 508 style url (e.g. `file:///<path>#subdirectory=<subdirectory>`) since we need both in
 /// different locations.
-#[derive(Hash, Debug, Clone, Eq, PartialEq)]
+#[derive(Hash, Debug, Clone, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum RequirementSource {
     /// The requirement has a version specifier, such as `foo >1,<2`.
     Registry {
+        #[serde(skip_serializing_if = "VersionSpecifiers::is_empty", default)]
         specifier: VersionSpecifiers,
         /// Choose a version from the index with this name.
         index: Option<String>,

@@ -17,15 +17,12 @@ use crate::Pep508Url;
 #[derivative(PartialEq, Hash, Ord)]
 pub struct VerbatimUrl {
     /// The parsed URL.
-    #[serde(
-        serialize_with = "Url::serialize_internal",
-        deserialize_with = "Url::deserialize_internal"
-    )]
     url: Url,
     /// The URL as it was provided by the user.
     #[derivative(PartialEq = "ignore")]
     #[derivative(Ord = "ignore")]
     #[derivative(Hash = "ignore")]
+    #[serde(skip)]
     given: Option<String>,
 }
 

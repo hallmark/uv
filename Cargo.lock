@@ -4840,6 +4840,7 @@ dependencies = [
  "fs-err",
  "reqwest",
  "reqwest-middleware",
+ "serde",
  "thiserror",
  "tokio",
  "tracing",
