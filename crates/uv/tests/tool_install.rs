@@ -510,19 +510,12 @@ fn tool_install_already_installed() {
     ----- stderr -----
     warning: `uv tool install` is experimental and may change without warning
     Resolved [N] packages in [TIME]
-    Uninstalled [N] packages in [TIME]
     Installed [N] packages in [TIME]
-     - black==24.3.0
      + black==24.3.0
-     - click==8.1.7
      + click==8.1.7
-     - mypy-extensions==1.0.0
      + mypy-extensions==1.0.0
-     - packaging==24.0
      + packaging==24.0
-     - pathspec==0.12.1
      + pathspec==0.12.1
-     - platformdirs==4.2.0
      + platformdirs==4.2.0
     Installed 2 executables: black, blackd
     "###);
@@ -543,10 +536,13 @@ fn tool_install_already_installed() {
     ----- stderr -----
     warning: `uv tool install` is experimental and may change without warning
     Resolved [N] packages in [TIME]
-    Uninstalled [N] packages in [TIME]
     Installed [N] packages in [TIME]
-     - black==24.3.0
      + black==24.3.0
+     + click==8.1.7
+     + mypy-extensions==1.0.0
+     + packaging==24.0
+     + pathspec==0.12.1
+     + platformdirs==4.2.0
     Installed 2 executables: black, blackd
     "###);
 
@@ -566,10 +562,13 @@ fn tool_install_already_installed() {
     ----- stderr -----
     warning: `uv tool install` is experimental and may change without warning
     Resolved [N] packages in [TIME]
-    Uninstalled [N] packages in [TIME]
     Installed [N] packages in [TIME]
-     - click==8.1.7
+     + black==24.3.0
      + click==8.1.7
+     + mypy-extensions==1.0.0
+     + packaging==24.0
+     + pathspec==0.12.1
+     + platformdirs==4.2.0
     Installed 2 executables: black, blackd
     "###);
 }
@@ -729,6 +728,14 @@ fn tool_install_entry_point_exists() {
 
     ----- stderr -----
     warning: `uv tool install` is experimental and may change without warning
+    Resolved [N] packages in [TIME]
+    Installed [N] packages in [TIME]
+     + black==24.3.0
+     + click==8.1.7
+     + mypy-extensions==1.0.0
+     + packaging==24.0
+     + pathspec==0.12.1
+     + platformdirs==4.2.0
     Installed 2 executables: black, blackd
     "###);
 
@@ -765,19 +772,12 @@ fn tool_install_entry_point_exists() {
     ----- stderr -----
     warning: `uv tool install` is experimental and may change without warning
     Resolved [N] packages in [TIME]
-    Uninstalled [N] packages in [TIME]
     Installed [N] packages in [TIME]
-     - black==24.3.0
      + black==24.3.0
-     - click==8.1.7
      + click==8.1.7
-     - mypy-extensions==1.0.0
      + mypy-extensions==1.0.0
-     - packaging==24.0
      + packaging==24.0
-     - pathspec==0.12.1
      + pathspec==0.12.1
-     - platformdirs==4.2.0
      + platformdirs==4.2.0
     Installed 2 executables: black, blackd
     "###);
@@ -805,7 +805,7 @@ fn tool_install_entry_point_exists() {
     }, {
         // Should run black in the virtual environment
         assert_snapshot!(fs_err::read_to_string(executable).unwrap(), @r###"
-        #![TEMP_DIR]/tools/black/bin/python3
+        #![TEMP_DIR]/tools/black/bin/python
         # -*- coding: utf-8 -*-
         import re
         import sys
@@ -1349,10 +1349,14 @@ fn tool_install_requirements_txt() {
     warning: `uv tool install` is experimental and may change without warning
     Resolved [N] packages in [TIME]
     Prepared [N] packages in [TIME]
-    Uninstalled [N] packages in [TIME]
     Installed [N] packages in [TIME]
+     + black==24.3.0
+     + click==8.1.7
      + idna==3.6
-     - iniconfig==2.0.0
+     + mypy-extensions==1.0.0
+     + packaging==24.0
+     + pathspec==0.12.1
+     + platformdirs==4.2.0
     Installed 2 executables: black, blackd
     "###);
 
@@ -1459,6 +1463,15 @@ fn tool_install_requirements_txt_arguments() {
 
     ----- stderr -----
     warning: `uv tool install` is experimental and may change without warning
+    Resolved 7 packages in [TIME]
+    Installed 7 packages in [TIME]
+     + black==24.3.0
+     + click==8.1.7
+     + idna==3.6
+     + mypy-extensions==1.0.0
+     + packaging==24.0
+     + pathspec==0.12.1
+     + platformdirs==4.2.0
     Installed 2 executables: black, blackd
     "###);
 
@@ -1562,6 +1575,15 @@ fn tool_install_upgrade() {
 
     ----- stderr -----
     warning: `uv tool install` is experimental and may change without warning
+    Resolved [N] packages in [TIME]
+    Prepared [N] packages in [TIME]
+    Installed [N] packages in [TIME]
+     + black==24.3.0
+     + click==8.1.7
+     + mypy-extensions==1.0.0
+     + packaging==24.0
+     + pathspec==0.12.1
+     + platformdirs==4.2.0
     Installed 2 executables: black, blackd
     "###);
 
@@ -1596,7 +1618,13 @@ fn tool_install_upgrade() {
     Resolved [N] packages in [TIME]
     Prepared [N] packages in [TIME]
     Installed [N] packages in [TIME]
+     + black==24.3.0
+     + click==8.1.7
      + iniconfig==2.0.0 (from https://files.pythonhosted.org/packages/ef/a6/62565a6e1cf69e10f5727360368e451d4b7f58beeac6173dc9db836a5b46/iniconfig-2.0.0-py3-none-any.whl)
+     + mypy-extensions==1.0.0
+     + packaging==24.0
+     + pathspec==0.12.1
+     + platformdirs==4.2.0
     Installed 2 executables: black, blackd
     "###);
 
@@ -1632,12 +1660,13 @@ fn tool_install_upgrade() {
     ----- stderr -----
     warning: `uv tool install` is experimental and may change without warning
     Resolved [N] packages in [TIME]
-    Prepared [N] packages in [TIME]
-    Uninstalled [N] packages in [TIME]
     Installed [N] packages in [TIME]
-     - black==24.1.1
      + black==24.3.0
-     - iniconfig==2.0.0 (from https://files.pythonhosted.org/packages/ef/a6/62565a6e1cf69e10f5727360368e451d4b7f58beeac6173dc9db836a5b46/iniconfig-2.0.0-py3-none-any.whl)
+     + click==8.1.7
+     + mypy-extensions==1.0.0
+     + packaging==24.0
+     + pathspec==0.12.1
+     + platformdirs==4.2.0
     Installed 2 executables: black, blackd
     "###);
 

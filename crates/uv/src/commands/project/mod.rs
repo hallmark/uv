@@ -794,7 +794,7 @@ pub(crate) async fn update_environment(
         project,
         &extras,
         preferences,
-        site_packages.clone(),
+        EmptyInstalledPackages,
         &hasher,
         reinstall,
         upgrade,
