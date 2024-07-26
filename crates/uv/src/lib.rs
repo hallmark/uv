@@ -23,6 +23,7 @@ use uv_cli::{SelfCommand, SelfNamespace};
 use uv_configuration::Concurrency;
 use uv_requirements::RequirementsSource;
 use uv_settings::{Combine, FilesystemOptions};
+use uv_warnings::warn_user;
 use uv_workspace::{DiscoveryOptions, Workspace};
 
 use crate::commands::{ExitStatus, ToolRunCommand};
@@ -135,6 +136,14 @@ async fn run(cli: Cli) -> Result<ExitStatus> {
                 .build(),
         )
     }))?;
+
+    if globals.isolated {
+        if globals.preview.is_enabled() {
+            warn_user!("The `--isolated` flag is deprecated. Instead, use `--no-config` to prevent uv from discovering configuration files, or `--no-workspace` to prevent uv from discovering a workspace in `uv run` and other commands.");
+        } else {
+            warn_user!("The `--isolated` flag is deprecated. Instead, use `--no-config` to prevent uv from discovering configuration files.");
+        }
+    }
 
     debug!("uv {}", version::version());
 

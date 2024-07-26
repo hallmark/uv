@@ -580,6 +580,7 @@ fn init_isolated() -> Result<()> {
     ----- stdout -----
 
     ----- stderr -----
+    warning: The `--isolated` flag is deprecated. Instead, use `--no-config` to prevent uv from discovering configuration files.
     warning: `uv init` is experimental and may change without warning
     Initialized project `foo`
     "###);
