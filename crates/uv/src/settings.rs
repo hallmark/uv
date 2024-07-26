@@ -258,6 +258,7 @@ pub(crate) struct ToolRunSettings {
     pub(crate) from: Option<String>,
     pub(crate) with: Vec<String>,
     pub(crate) with_requirements: Vec<PathBuf>,
+    pub(crate) isolate: bool,
     pub(crate) python: Option<String>,
     pub(crate) refresh: Refresh,
     pub(crate) settings: ResolverInstallerSettings,
@@ -272,6 +273,7 @@ impl ToolRunSettings {
             from,
             with,
             with_requirements,
+            isolate,
             installer,
             build,
             refresh,
@@ -286,6 +288,7 @@ impl ToolRunSettings {
                 .into_iter()
                 .filter_map(Maybe::into_option)
                 .collect(),
+            isolate,
             python,
             refresh: Refresh::from(refresh),
             settings: ResolverInstallerSettings::combine(

@@ -347,9 +347,9 @@ fn tool_run_from_install() {
     warning: `uv tool run` is experimental and may change without warning
     "###);
 
-    // Verify that `--isolated` uses an isolated environment.
+    // Verify that `--isolate` uses an isolated environment.
     uv_snapshot!(context.filters(), context.tool_run()
-        .arg("--isolated")
+        .arg("--isolate")
         .arg("black")
         .arg("--version")
         .env("UV_TOOL_DIR", tool_dir.as_os_str())

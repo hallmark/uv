@@ -2263,6 +2263,10 @@ pub struct ToolRunArgs {
     #[arg(long, value_parser = parse_maybe_file_path)]
     pub with_requirements: Vec<Maybe<PathBuf>>,
 
+    /// Run the tool in an isolated virtual environment, ignoring any already-installed tools.
+    #[arg(long)]
+    pub isolate: bool,
+
     #[command(flatten)]
     pub installer: ResolverInstallerArgs,
 
