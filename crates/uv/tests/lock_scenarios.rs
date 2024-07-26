@@ -109,6 +109,16 @@ fn fork_allows_non_conflicting_non_overlapping_dependencies() -> Result<()> {
         );
     });
 
+    // Assert the idempotence of `uv lock`
+    context
+        .lock()
+        .env_remove("UV_EXCLUDE_NEWER")
+        .arg("--index-url")
+        .arg("https://astral-sh.github.io/packse/0.3.31/simple-html/")
+        .status()?;
+    let lock2 = fs_err::read_to_string(context.temp_dir.join("uv.lock"))?;
+    assert_eq!(lock2, lock);
+
     Ok(())
 }
 
@@ -204,6 +214,16 @@ fn fork_allows_non_conflicting_repeated_dependencies() -> Result<()> {
         "###
         );
     });
+
+    // Assert the idempotence of `uv lock`
+    context
+        .lock()
+        .env_remove("UV_EXCLUDE_NEWER")
+        .arg("--index-url")
+        .arg("https://astral-sh.github.io/packse/0.3.31/simple-html/")
+        .status()?;
+    let lock2 = fs_err::read_to_string(context.temp_dir.join("uv.lock"))?;
+    assert_eq!(lock2, lock);
 
     Ok(())
 }
@@ -310,6 +330,16 @@ fn fork_basic() -> Result<()> {
         "###
         );
     });
+
+    // Assert the idempotence of `uv lock`
+    context
+        .lock()
+        .env_remove("UV_EXCLUDE_NEWER")
+        .arg("--index-url")
+        .arg("https://astral-sh.github.io/packse/0.3.31/simple-html/")
+        .status()?;
+    let lock2 = fs_err::read_to_string(context.temp_dir.join("uv.lock"))?;
+    assert_eq!(lock2, lock);
 
     Ok(())
 }
@@ -633,6 +663,16 @@ fn fork_filter_sibling_dependencies() -> Result<()> {
         );
     });
 
+    // Assert the idempotence of `uv lock`
+    context
+        .lock()
+        .env_remove("UV_EXCLUDE_NEWER")
+        .arg("--index-url")
+        .arg("https://astral-sh.github.io/packse/0.3.31/simple-html/")
+        .status()?;
+    let lock2 = fs_err::read_to_string(context.temp_dir.join("uv.lock"))?;
+    assert_eq!(lock2, lock);
+
     Ok(())
 }
 
@@ -773,6 +813,16 @@ fn fork_incomplete_markers() -> Result<()> {
         );
     });
 
+    // Assert the idempotence of `uv lock`
+    context
+        .lock()
+        .env_remove("UV_EXCLUDE_NEWER")
+        .arg("--index-url")
+        .arg("https://astral-sh.github.io/packse/0.3.31/simple-html/")
+        .status()?;
+    let lock2 = fs_err::read_to_string(context.temp_dir.join("uv.lock"))?;
+    assert_eq!(lock2, lock);
+
     Ok(())
 }
 
@@ -892,6 +942,16 @@ fn fork_marker_accrue() -> Result<()> {
         "###
         );
     });
+
+    // Assert the idempotence of `uv lock`
+    context
+        .lock()
+        .env_remove("UV_EXCLUDE_NEWER")
+        .arg("--index-url")
+        .arg("https://astral-sh.github.io/packse/0.3.31/simple-html/")
+        .status()?;
+    let lock2 = fs_err::read_to_string(context.temp_dir.join("uv.lock"))?;
+    assert_eq!(lock2, lock);
 
     Ok(())
 }
@@ -1120,6 +1180,16 @@ fn fork_marker_inherit_combined_allowed() -> Result<()> {
         );
     });
 
+    // Assert the idempotence of `uv lock`
+    context
+        .lock()
+        .env_remove("UV_EXCLUDE_NEWER")
+        .arg("--index-url")
+        .arg("https://astral-sh.github.io/packse/0.3.31/simple-html/")
+        .status()?;
+    let lock2 = fs_err::read_to_string(context.temp_dir.join("uv.lock"))?;
+    assert_eq!(lock2, lock);
+
     Ok(())
 }
 
@@ -1270,6 +1340,16 @@ fn fork_marker_inherit_combined_disallowed() -> Result<()> {
         "###
         );
     });
+
+    // Assert the idempotence of `uv lock`
+    context
+        .lock()
+        .env_remove("UV_EXCLUDE_NEWER")
+        .arg("--index-url")
+        .arg("https://astral-sh.github.io/packse/0.3.31/simple-html/")
+        .status()?;
+    let lock2 = fs_err::read_to_string(context.temp_dir.join("uv.lock"))?;
+    assert_eq!(lock2, lock);
 
     Ok(())
 }
@@ -1423,6 +1503,16 @@ fn fork_marker_inherit_combined() -> Result<()> {
         );
     });
 
+    // Assert the idempotence of `uv lock`
+    context
+        .lock()
+        .env_remove("UV_EXCLUDE_NEWER")
+        .arg("--index-url")
+        .arg("https://astral-sh.github.io/packse/0.3.31/simple-html/")
+        .status()?;
+    let lock2 = fs_err::read_to_string(context.temp_dir.join("uv.lock"))?;
+    assert_eq!(lock2, lock);
+
     Ok(())
 }
 
@@ -1550,6 +1640,16 @@ fn fork_marker_inherit_isolated() -> Result<()> {
         "###
         );
     });
+
+    // Assert the idempotence of `uv lock`
+    context
+        .lock()
+        .env_remove("UV_EXCLUDE_NEWER")
+        .arg("--index-url")
+        .arg("https://astral-sh.github.io/packse/0.3.31/simple-html/")
+        .status()?;
+    let lock2 = fs_err::read_to_string(context.temp_dir.join("uv.lock"))?;
+    assert_eq!(lock2, lock);
 
     Ok(())
 }
@@ -1696,6 +1796,16 @@ fn fork_marker_inherit_transitive() -> Result<()> {
         );
     });
 
+    // Assert the idempotence of `uv lock`
+    context
+        .lock()
+        .env_remove("UV_EXCLUDE_NEWER")
+        .arg("--index-url")
+        .arg("https://astral-sh.github.io/packse/0.3.31/simple-html/")
+        .status()?;
+    let lock2 = fs_err::read_to_string(context.temp_dir.join("uv.lock"))?;
+    assert_eq!(lock2, lock);
+
     Ok(())
 }
 
@@ -1811,6 +1921,16 @@ fn fork_marker_inherit() -> Result<()> {
         "###
         );
     });
+
+    // Assert the idempotence of `uv lock`
+    context
+        .lock()
+        .env_remove("UV_EXCLUDE_NEWER")
+        .arg("--index-url")
+        .arg("https://astral-sh.github.io/packse/0.3.31/simple-html/")
+        .status()?;
+    let lock2 = fs_err::read_to_string(context.temp_dir.join("uv.lock"))?;
+    assert_eq!(lock2, lock);
 
     Ok(())
 }
@@ -1955,6 +2075,16 @@ fn fork_marker_limited_inherit() -> Result<()> {
         );
     });
 
+    // Assert the idempotence of `uv lock`
+    context
+        .lock()
+        .env_remove("UV_EXCLUDE_NEWER")
+        .arg("--index-url")
+        .arg("https://astral-sh.github.io/packse/0.3.31/simple-html/")
+        .status()?;
+    let lock2 = fs_err::read_to_string(context.temp_dir.join("uv.lock"))?;
+    assert_eq!(lock2, lock);
+
     Ok(())
 }
 
@@ -2082,6 +2212,16 @@ fn fork_marker_selection() -> Result<()> {
         "###
         );
     });
+
+    // Assert the idempotence of `uv lock`
+    context
+        .lock()
+        .env_remove("UV_EXCLUDE_NEWER")
+        .arg("--index-url")
+        .arg("https://astral-sh.github.io/packse/0.3.31/simple-html/")
+        .status()?;
+    let lock2 = fs_err::read_to_string(context.temp_dir.join("uv.lock"))?;
+    assert_eq!(lock2, lock);
 
     Ok(())
 }
@@ -2234,6 +2374,16 @@ fn fork_marker_track() -> Result<()> {
         );
     });
 
+    // Assert the idempotence of `uv lock`
+    context
+        .lock()
+        .env_remove("UV_EXCLUDE_NEWER")
+        .arg("--index-url")
+        .arg("https://astral-sh.github.io/packse/0.3.31/simple-html/")
+        .status()?;
+    let lock2 = fs_err::read_to_string(context.temp_dir.join("uv.lock"))?;
+    assert_eq!(lock2, lock);
+
     Ok(())
 }
 
@@ -2352,6 +2502,16 @@ fn fork_non_fork_marker_transitive() -> Result<()> {
         "###
         );
     });
+
+    // Assert the idempotence of `uv lock`
+    context
+        .lock()
+        .env_remove("UV_EXCLUDE_NEWER")
+        .arg("--index-url")
+        .arg("https://astral-sh.github.io/packse/0.3.31/simple-html/")
+        .status()?;
+    let lock2 = fs_err::read_to_string(context.temp_dir.join("uv.lock"))?;
+    assert_eq!(lock2, lock);
 
     Ok(())
 }
@@ -2707,6 +2867,10 @@ fn preferences_dependent_forking() -> Result<()> {
             lock, @r###"
         version = 1
         requires-python = ">=3.8"
+        environment-markers = [
+            "sys_platform == 'linux'",
+            "sys_platform != 'linux'",
+        ]
 
         [[distribution]]
         name = "package-bar"
@@ -2734,6 +2898,9 @@ fn preferences_dependent_forking() -> Result<()> {
         name = "package-foo"
         version = "1.0.0"
         source = { registry = "https://astral-sh.github.io/packse/0.3.31/simple-html/" }
+        environment-markers = [
+            "sys_platform == 'linux'",
+        ]
         sdist = { url = "https://astral-sh.github.io/packse/0.3.31/files/preferences_dependent_forking_foo-1.0.0.tar.gz#sha256=abf1c0ac825ee5961e683067634916f98c6651a6d4473ff87d8b57c17af8fed2", hash = "sha256:abf1c0ac825ee5961e683067634916f98c6651a6d4473ff87d8b57c17af8fed2" }
         wheels = [
             { url = "https://astral-sh.github.io/packse/0.3.31/files/preferences_dependent_forking_foo-1.0.0-py3-none-any.whl#sha256=85348e8df4892b9f297560c16abcf231828f538dc07339ed121197a00a0626a5", hash = "sha256:85348e8df4892b9f297560c16abcf231828f538dc07339ed121197a00a0626a5" },
@@ -2743,6 +2910,9 @@ fn preferences_dependent_forking() -> Result<()> {
         name = "package-foo"
         version = "2.0.0"
         source = { registry = "https://astral-sh.github.io/packse/0.3.31/simple-html/" }
+        environment-markers = [
+            "sys_platform != 'linux'",
+        ]
         sdist = { url = "https://astral-sh.github.io/packse/0.3.31/files/preferences_dependent_forking_foo-2.0.0.tar.gz#sha256=ad54d14a4fd931b8ccb6412edef71fe223c36362d0ccfe3fa251c17d4f07e4a9", hash = "sha256:ad54d14a4fd931b8ccb6412edef71fe223c36362d0ccfe3fa251c17d4f07e4a9" }
         wheels = [
             { url = "https://astral-sh.github.io/packse/0.3.31/files/preferences_dependent_forking_foo-2.0.0-py3-none-any.whl#sha256=bae278cf259c0e031e52b6cbb537d945e0e606d045e980b90d406d0f1e06aae9", hash = "sha256:bae278cf259c0e031e52b6cbb537d945e0e606d045e980b90d406d0f1e06aae9" },
@@ -2761,6 +2931,16 @@ fn preferences_dependent_forking() -> Result<()> {
         "###
         );
     });
+
+    // Assert the idempotence of `uv lock`
+    context
+        .lock()
+        .env_remove("UV_EXCLUDE_NEWER")
+        .arg("--index-url")
+        .arg("https://astral-sh.github.io/packse/0.3.31/simple-html/")
+        .status()?;
+    let lock2 = fs_err::read_to_string(context.temp_dir.join("uv.lock"))?;
+    assert_eq!(lock2, lock);
 
     Ok(())
 }
@@ -2833,6 +3013,16 @@ fn fork_requires_python_full_prerelease() -> Result<()> {
         );
     });
 
+    // Assert the idempotence of `uv lock`
+    context
+        .lock()
+        .env_remove("UV_EXCLUDE_NEWER")
+        .arg("--index-url")
+        .arg("https://astral-sh.github.io/packse/0.3.31/simple-html/")
+        .status()?;
+    let lock2 = fs_err::read_to_string(context.temp_dir.join("uv.lock"))?;
+    assert_eq!(lock2, lock);
+
     Ok(())
 }
 
@@ -2904,6 +3094,16 @@ fn fork_requires_python_full() -> Result<()> {
         "###
         );
     });
+
+    // Assert the idempotence of `uv lock`
+    context
+        .lock()
+        .env_remove("UV_EXCLUDE_NEWER")
+        .arg("--index-url")
+        .arg("https://astral-sh.github.io/packse/0.3.31/simple-html/")
+        .status()?;
+    let lock2 = fs_err::read_to_string(context.temp_dir.join("uv.lock"))?;
+    assert_eq!(lock2, lock);
 
     Ok(())
 }
@@ -2992,6 +3192,16 @@ fn fork_requires_python_patch_overlap() -> Result<()> {
         );
     });
 
+    // Assert the idempotence of `uv lock`
+    context
+        .lock()
+        .env_remove("UV_EXCLUDE_NEWER")
+        .arg("--index-url")
+        .arg("https://astral-sh.github.io/packse/0.3.31/simple-html/")
+        .status()?;
+    let lock2 = fs_err::read_to_string(context.temp_dir.join("uv.lock"))?;
+    assert_eq!(lock2, lock);
+
     Ok(())
 }
 
@@ -3061,6 +3271,16 @@ fn fork_requires_python() -> Result<()> {
         "###
         );
     });
+
+    // Assert the idempotence of `uv lock`
+    context
+        .lock()
+        .env_remove("UV_EXCLUDE_NEWER")
+        .arg("--index-url")
+        .arg("https://astral-sh.github.io/packse/0.3.31/simple-html/")
+        .status()?;
+    let lock2 = fs_err::read_to_string(context.temp_dir.join("uv.lock"))?;
+    assert_eq!(lock2, lock);
 
     Ok(())
 }
