@@ -1,7 +1,6 @@
 //! Takes a wheel and installs it into a venv.
 
 use std::io;
-
 use std::path::PathBuf;
 
 use platform_info::PlatformInfoError;
@@ -34,6 +33,11 @@ pub struct Layout {
     pub os_name: String,
     /// The [`Scheme`] paths for the interpreter.
     pub scheme: Scheme,
+    /// Whether the environment is "relocatable". When enabled, any paths to the environment (e.g.,
+    /// those encoded in entrypoints and scripts) will be expressed in relative terms. As a result,
+    /// the entrypoints and scripts themselves will _not_ be relocatable, but the environment as a
+    /// whole will be.
+    pub relocatable: bool,
 }
 
 /// Note: The caller is responsible for adding the path of the wheel we're installing.

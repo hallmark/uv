@@ -1,14 +1,14 @@
-use std::collections::HashMap;
-use std::io::{BufRead, BufReader, Cursor, Read, Write};
-use std::path::{Path, PathBuf};
-use std::{env, io};
-
 use data_encoding::BASE64URL_NOPAD;
 use fs_err as fs;
 use fs_err::{DirEntry, File};
 use mailparse::MailHeaderMap;
 use rustc_hash::FxHashMap;
 use sha2::{Digest, Sha256};
+use std::borrow::Cow;
+use std::collections::HashMap;
+use std::io::{BufRead, BufReader, Cursor, Read, Write};
+use std::path::{Path, PathBuf};
+use std::{env, io};
 use tracing::{instrument, warn};
 use walkdir::WalkDir;
 use zip::write::FileOptions;
@@ -122,15 +122,24 @@ fn copy_and_hash(reader: &mut impl Read, writer: &mut impl Write) -> io::Result<
     ))
 }
 
-/// Format the shebang for a given Python executable.
+/// Format the shebang for a given Python executable, assuming an absolute path.
 ///
 /// Like pip, if a shebang is non-simple (too long or contains spaces), we use `/bin/sh` as the
 /// executable.
 ///
 /// See: <https://github.com/pypa/pip/blob/0ad4c94be74cc24874c6feb5bb3c2152c398a18e/src/pip/_vendor/distlib/scripts.py#L136-L165>
-fn format_shebang(executable: impl AsRef<Path>, os_name: &str) -> String {
+fn format_absolute_shebang(executable: impl AsRef<Path>, os_name: &str) -> String {
+    let executable = executable.as_ref();
+    if cfg!(not(windows)) {
+        debug_assert!(
+            executable.is_absolute(),
+            "Path must be absolute: {}",
+            executable.display()
+        );
+    }
+
     // Convert the executable to a simplified path.
-    let executable = executable.as_ref().simplified_display().to_string();
+    let executable = executable.simplified_display().to_string();
 
     // Validate the shebang.
     if os_name == "posix" {
@@ -146,6 +155,32 @@ fn format_shebang(executable: impl AsRef<Path>, os_name: &str) -> String {
             let executable = format!("'{}'", executable.replace('\'', r#"'"'"'"#));
             return format!("#!/bin/sh\n'''exec' {executable} \"$0\" \"$@\"\n' '''");
         }
+    }
+
+    format!("#!{executable}")
+}
+
+/// Format the shebang for a given Python executable, assuming a relative path.
+///
+/// Like pip, if a shebang is non-simple (too long or contains spaces), we use `/bin/sh` as the
+/// executable.
+///
+/// See: <https://github.com/pypa/pip/blob/0ad4c94be74cc24874c6feb5bb3c2152c398a18e/src/pip/_vendor/distlib/scripts.py#L136-L165>
+fn format_relative_shebang(executable: impl AsRef<Path>, os_name: &str) -> String {
+    let executable = executable.as_ref();
+    debug_assert!(
+        executable.is_relative(),
+        "Path must be relative: {}",
+        executable.display()
+    );
+
+    // Convert the executable to a simplified path.
+    let executable = executable.simplified_display().to_string();
+
+    // Wrap in `dirname`. We assume that the relative path is fairly simple, since we know it's a
+    // relative path within a virtual environment, and so we shouldn't need to handle quotes,e tc.
+    if os_name == "posix" {
+        return format!("#!/bin/sh\n'''exec' \"$(dirname $0)/{executable}\" \"$0\" \"$@\"\n' '''");
     }
 
     format!("#!{executable}")
@@ -291,12 +326,32 @@ pub(crate) fn write_script_entrypoints(
                 ))
             })?;
 
+        let python_executable = if layout.relocatable {
+            Cow::Owned(
+                pathdiff::diff_paths(&layout.sys_executable, &layout.scheme.scripts).ok_or_else(
+                    || {
+                        Error::Io(io::Error::new(
+                            io::ErrorKind::Other,
+                            format!(
+                                "Could not find relative path for: {}",
+                                layout.sys_executable.simplified_display()
+                            ),
+                        ))
+                    },
+                )?,
+            )
+        } else {
+            Cow::Borrowed(&layout.sys_executable)
+        };
+
         // Generate the launcher script.
-        let launcher_executable = get_script_executable(&layout.sys_executable, is_gui);
-        let launcher_python_script = get_script_launcher(
-            entrypoint,
-            &format_shebang(&launcher_executable, &layout.os_name),
-        );
+        let launcher_executable = get_script_executable(&python_executable, is_gui);
+        let shebang = if layout.relocatable {
+            format_relative_shebang(&launcher_executable, &layout.os_name)
+        } else {
+            format_absolute_shebang(&launcher_executable, &layout.os_name)
+        };
+        let launcher_python_script = get_script_launcher(entrypoint, &shebang);
 
         // If necessary, wrap the launcher script in a Windows launcher binary.
         if cfg!(windows) {
@@ -432,9 +487,9 @@ pub(crate) fn move_folder_recorded(
     Ok(())
 }
 
-/// Installs a single script (not an entrypoint)
+/// Installs a single script (not an entrypoint).
 ///
-/// Has to deal with both binaries files (just move) and scripts (rewrite the shebang if applicable)
+/// Has to deal with both binaries files (just move) and scripts (rewrite the shebang if applicable).
 fn install_script(
     layout: &Layout,
     site_packages: &Path,
@@ -494,7 +549,25 @@ fn install_script(
     let mut start = vec![0; placeholder_python.len()];
     script.read_exact(&mut start)?;
     let size_and_encoded_hash = if start == placeholder_python {
-        let start = format_shebang(&layout.sys_executable, &layout.os_name)
+        let python_executable = if layout.relocatable {
+            Cow::Owned(
+                pathdiff::diff_paths(&layout.sys_executable, &layout.scheme.scripts).ok_or_else(
+                    || {
+                        Error::Io(io::Error::new(
+                            io::ErrorKind::Other,
+                            format!(
+                                "Could not find relative path for: {}",
+                                layout.sys_executable.simplified_display()
+                            ),
+                        ))
+                    },
+                )?,
+            )
+        } else {
+            Cow::Borrowed(&layout.sys_executable)
+        };
+
+        let start = format_absolute_shebang(python_executable.as_ref(), &layout.os_name)
             .as_bytes()
             .to_vec();
 
@@ -779,7 +852,7 @@ mod test {
     use assert_fs::prelude::*;
     use indoc::{formatdoc, indoc};
 
-    use crate::wheel::format_shebang;
+    use crate::wheel::format_absolute_shebang;
     use crate::Error;
 
     use super::{
@@ -884,17 +957,20 @@ mod test {
     }
 
     #[test]
-    fn test_shebang() {
+    fn test_absolute() {
         // By default, use a simple shebang.
         let executable = Path::new("/usr/bin/python3");
         let os_name = "posix";
-        assert_eq!(format_shebang(executable, os_name), "#!/usr/bin/python3");
+        assert_eq!(
+            format_absolute_shebang(executable, os_name),
+            "#!/usr/bin/python3"
+        );
 
         // If the path contains spaces, we should use the `exec` trick.
         let executable = Path::new("/usr/bin/path to python3");
         let os_name = "posix";
         assert_eq!(
-            format_shebang(executable, os_name),
+            format_absolute_shebang(executable, os_name),
             "#!/bin/sh\n'''exec' '/usr/bin/path to python3' \"$0\" \"$@\"\n' '''"
         );
 
@@ -902,19 +978,22 @@ mod test {
         let executable = Path::new("/usr/bin/path to python3");
         let os_name = "nt";
         assert_eq!(
-            format_shebang(executable, os_name),
+            format_absolute_shebang(executable, os_name),
             "#!/usr/bin/path to python3"
         );
 
         // Quotes, however, are ok.
         let executable = Path::new("/usr/bin/'python3'");
         let os_name = "posix";
-        assert_eq!(format_shebang(executable, os_name), "#!/usr/bin/'python3'");
+        assert_eq!(
+            format_absolute_shebang(executable, os_name),
+            "#!/usr/bin/'python3'"
+        );
 
         // If the path is too long, we should not use the `exec` trick.
         let executable = Path::new("/usr/bin/path/to/a/very/long/executable/executable/executable/executable/executable/executable/executable/executable/name/python3");
         let os_name = "posix";
-        assert_eq!(format_shebang(executable, os_name), "#!/bin/sh\n'''exec' '/usr/bin/path/to/a/very/long/executable/executable/executable/executable/executable/executable/executable/executable/name/python3' \"$0\" \"$@\"\n' '''");
+        assert_eq!(format_absolute_shebang(executable, os_name), "#!/bin/sh\n'''exec' '/usr/bin/path/to/a/very/long/executable/executable/executable/executable/executable/executable/executable/executable/name/python3' \"$0\" \"$@\"\n' '''");
     }
 
     #[test]
